@@ -1,19 +1,18 @@
-import babel from 'rollup-plugin-babel';
+import babel from "rollup-plugin-babel";
 
 export default {
-	input: 'src/main.js',
+	input: "src/main.js",
 	output: {
-		file: 'dist/soundrecorder.js',
-		format: 'es',
-		sourcemap: true
+		file: "dist/soundRecorder.js",
+		format: "umd",
+		sourcemap: true,
+		name: 'SoundRecorder',
 	},
 	plugins: [
 		babel({
-			runtimeHelpers: true,
-			externalHelpers: true,
-			exclude: 'node_modules/**', // 只编译我们的源代码
-			babelrc: false,
-			presets: ['@babel/preset-env'],
+			// runtimeHelpers: true,
+			// externalHelpers: true,
+			exclude: "node_modules/**",
 		})
 	]
 };

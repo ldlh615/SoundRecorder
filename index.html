@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-		<script src="./main.js"></script>
+		<script src="./soundRecorder.js"></script>
 		<style>
 			button {
 				display: block;
@@ -25,7 +25,16 @@
 	<button id="onVoicePlayEnd">onVoicePlayEnd</button>
 	<button id="uploadVoice">uploadVoice</button>
 	<button id="getBlob">getBlob</button>
+
 	<script>
+		console.log(SoundRecorder)
+
+		const options = {
+
+		}
+		const sr = new SoundRecorder(options)
+
+		console.log(sr)
 	</script>
 </body>
 </html>
