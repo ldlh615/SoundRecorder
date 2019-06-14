@@ -83,41 +83,52 @@ class SoundRecorder {
 
 	initRecordeEventListener() {
 		this.mediaRecorder.ondataavailable = (blobEvent) => {
+			console.log(1, blobEvent)
 			this.recordChunks.push(blobEvent.data)
+			// this.callEventListener('stopRecord')
+		}
+		this.mediaRecorder.onstop = (blobEvent) => {
+			console.log(2, blobEvent)
 		}
 	}
 
-	// 	getBlob() {
-	// 		if (this.recordChunks && this.recordChunks.length) {
-	// 			let that = this
-	// 			return new Blob(this.recordChunks, {type: this.recordOptions.mimeType})
-	// 		}
-	// 	}
+	getBlob(type) {
+		if (this.recordChunks && this.recordChunks.length) {
+			return new Blob(this.recordChunks, { type: this.recordOptions.mimeType })
+		} else {
+			return null
+		}
+	}
 
 	startRecord() {
 		if (this.isRecording) {
 			return
 		}
+		const startFunc = () => {
+			this.recordChunks = []
+			this.mediaRecorder.start()
+			this.isRecording = true
+			this.callEventListener('startRecord')
+		}
 		if (!this.mediaStream || !this.mediaRecorder) {
 			this.initMedia().then(res => {
-
+				startFunc()
 			}).catch(err => {
 			})
+		} else {
+			startFunc()
 		}
-		// 		this.recordChunks = []
-		// 		this.mediaRecorder.start()
-		// 		this.isRecording = true
-		// 		return
-		this.callEventListener('startRecord')
+
+		
+
 	}
 
 	stopRecord() {
-		// 		if (!this.isRecording || !this.mediaStream || !this.mediaRecorder) {
-		// 			return
-		// 		}
-		// 		this.isRecording = false
-		// 		this.mediaRecorder.stop()
-		this.callEventListener('stopRecord')
+		if (!this.isRecording || !this.mediaStream || !this.mediaRecorder) {
+			return
+		}
+		this.isRecording = false
+		this.mediaRecorder.stop()
 	}
 
 

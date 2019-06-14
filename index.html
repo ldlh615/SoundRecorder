@@ -65,6 +65,15 @@
 				sr.stopRecord()
 			})
 
+			$('#getBlob').click(() => {
+				let b = sr.getBlob()
+				console.log(b)
+				if (b) {
+					let open = window.confirm('open the blob in new window?')
+					open && window.open(URL.createObjectURL(b), 'blank')
+				}
+			})
+
 
 
 		})
