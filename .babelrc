@@ -1,29 +1,2 @@
 {
-  "presets": [
-    [
-      "@babel/preset-env",
-      {
-        "modules": false,
-        "targets": {
-          "browsers": [
-            "> 1%",
-            "last 2 versions",
-            "not ie <= 8"
-          ]
-        }
-      }
-    ],
-  ],
-  "plugins": [
-    "@babel/plugin-transform-runtime",
-    "@babel/plugin-external-helpers",
-    [
-      "@babel/plugin-proposal-decorators",
-      {
-        "legacy": true
-      }
-    ],
-    "@babel/plugin-proposal-function-bind",
-    "@babel/plugin-proposal-optional-chaining"
-  ]
 }

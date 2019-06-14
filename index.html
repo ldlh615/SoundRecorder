@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-		<script src="./soundRecorder.js"></script>
-		<style>
-			button {
-				display: block;
-				margin: 10px 0;
-			}
-		</style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+	<script src="./soundRecorder.js"></script>
+	<style>
+		button {
+			display: block;
+			margin: 10px 0;
+		}
+	</style>
 </head>
+
 <body>
 	<audio id="audio" controls autoplay preload="auto"></audio>
 	<button id="startRecord">startRecord</button>
@@ -27,14 +29,47 @@
 	<button id="getBlob">getBlob</button>
 
 	<script>
-		console.log(SoundRecorder)
+		$(() => {
+			// 确保SoundRecorder已加载完毕
+			console.log('has SoundRecorder: ', !!SoundRecorder)
 
-		const options = {
+			// 定义参数
+			const options = {
 
-		}
-		const sr = new SoundRecorder(options)
+			}
 
-		console.log(sr)
+			// 实例化
+			window.sr = new SoundRecorder(options)
+
+			console.log(sr)
+
+			// 注册生命周期回调
+			sr.on('error', (e) => {
+				console.log(e)
+			})
+			sr.on('startRecord', (e) => {
+				console.log(e)
+			})
+			sr.on('stopRecord', (e) => {
+				console.log(e)
+			})
+
+			// 点击事件
+			$('#startRecord').click(() => {
+				let recOptions = {
+					duration: 10000,
+				}
+				sr.startRecord(recOptions)
+			})
+			$('#stopRecord').click(() => {
+				sr.stopRecord()
+			})
+
+
+
+		})
+
 	</script>
 </body>
+
 </html>
