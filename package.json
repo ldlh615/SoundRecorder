@@ -1,17 +1,19 @@
 {
-  "name": "@funny-order/soundrecorder",
-  "version": "1.0.0",
+  "name": "soundrecorder",
+  "version": "0.0.1",
   "description": "A web sound recorder base on h5 api",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode=production",
     "dev": "webpack --config webpack.config.js --mode=development --watch",
     "server": "nodemon ./server.js"
   },
+  "main": "src/main.js",
+  "keywords": ["audio", "record", "mediastream", "mediarecorder"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ldlh615/SoundRecorder.git"
   },
-  "author": "",
+  "author": "ldlh615",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ldlh615/SoundRecorder/issues"
