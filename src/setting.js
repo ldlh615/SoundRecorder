@@ -3,6 +3,8 @@ export const defaultStreamOptions = {
   audio: {
     channelCount: 1,	// 声道
     echoCancellation: true,	// 回声控制
+    // sampleSize:   // 采样大小
+    sampleRate: 24000,// 采样率
   }
 }
 
@@ -10,7 +12,7 @@ export const defaultStreamOptions = {
 // http://www.w3school.com.cn/media/media_mimeref.asp
 export const defaultRecordOptions = {
   mimeType: "audio/webm",	// 格式
-  audioBitsPerSecond: "128000",	//比特率
+  audioBitsPerSecond: 128000,	//比特率
   ignoreMutedMedia: true,
 }
 

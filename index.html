@@ -18,46 +18,64 @@
 
 <body>
 	<audio id="audio" controls autoplay preload="auto"></audio>
+	<canvas id="canvas" width="640" height="255"></canvas>
+	<hr>
+	当前状态: <span id="status"></span>
+	<hr>
 	<button id="startRecord">startRecord</button>
 	<button id="stopRecord">stopRecord</button>
-	<button id="onVoiceRecordEnd">onVoiceRecordEnd</button>
-	<button id="playVoice">playVoice</button>
-	<button id="pauseVoice">pauseVoice</button>
-	<button id="stopVoice">stopVoice</button>
-	<button id="onVoicePlayEnd">onVoicePlayEnd</button>
-	<button id="uploadVoice">uploadVoice</button>
 	<button id="getBlob">getBlob</button>
+	<button id="playBlob">playBlob</button>
+
 
 	<script>
 		$(() => {
 			// 确保SoundRecorder已加载完毕
-			console.log('has SoundRecorder: ', !!SoundRecorder)
+			console.log('Loaded SoundRecorder: ', !!window.SoundRecorder)
 
-			// 定义参数
-			const options = {
+			// 定义页面所需变量
+			const audioElement = document.getElementById('audio')
+			const statusElement = document.getElementById('status')
+			const canvas = document.getElementById('canvas')
+			const ctx = canvas.getContext("2d")
+			ctx.fillStyle = "#fff"
+			ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-			}
 
 			// 实例化
-			window.sr = new SoundRecorder(options)
+			window.sr = new SoundRecorder()
 
-			console.log(sr)
+			console.log('Instance: ', sr)
 
 			// 注册生命周期回调
 			sr.on('error', (e) => {
-				console.log(e)
+				console.log('error', e)
 			})
 			sr.on('startRecord', (e) => {
-				console.log(e)
+				console.log('startRecord', e)
+				statusElement.innerText = '录音中'
 			})
 			sr.on('stopRecord', (e) => {
-				console.log(e)
+				console.log('stopRecord', e)
+				statusElement.innerText = '录音结束'
+			})
+			sr.on('audioAnalyse', (e) => {
+				// console.log('audioAnalyse', e)
+				let audioDataArray = e.audioDataArray || []
+				ctx.fillStyle = "#fff"
+				ctx.fillRect(0, 0, canvas.width, canvas.height)
+				for (let i = 0; i < audioDataArray.length; i++) {
+					let val = audioDataArray[i]
+					ctx.fillStyle = "#000"
+					ctx.fillRect(i, canvas.height - val, 1, val)
+				}
 			})
 
 			// 点击事件
 			$('#startRecord').click(() => {
 				let recOptions = {
-					duration: 10000,
+					duration: 60000,
+					analyseDelay: 0
 				}
 				sr.startRecord(recOptions)
 			})
@@ -71,6 +89,14 @@
 				if (b) {
 					let open = window.confirm('open the blob in new window?')
 					open && window.open(URL.createObjectURL(b), 'blank')
+				}
+			})
+			$('#playBlob').click(() => {
+				let b = sr.getBlob()
+				console.log(b)
+				if (b) {
+					audioElement.src = URL.createObjectURL(b)
+					audioElement.play()
 				}
 			})
 

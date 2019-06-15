@@ -1,39 +1,46 @@
-/**
- 		onStartRecord
-		onStopRecord
-		onVoiceRecordEnd
-		onPlayVoice
-		onPauseVoice
-		onStopVoice
-		onVoicePlayEnd
-		onUploadVoice
- *  */
-
-
 import { defaultStreamOptions, defaultRecordOptions, defaultEventOptions } from './setting'
-import checkBrowserApi from './checkBrowserSupport'
+import checkBrowserSupport from './checkBrowserSupport'
 import util from './util'
 
 class SoundRecorder {
 
-	constructor({ streamOptions, recordOptions, audioElement, playWhenRecord = true }) {
-		if (!checkBrowserApi()) {
-			return new Error('您的浏览器不支持录制音频,请使用')
+	constructor() {
+		if (!checkBrowserSupport()) {
+			return new Error('您的浏览器不支持录制音频,请使用Chrome或更高版本的浏览器')
 		}
 
-		this.streamOptions = Object.assign(defaultStreamOptions, streamOptions)
-		this.recordOptions = Object.assign(defaultRecordOptions, recordOptions)
-		this.isRecording = false
-		this.playWhenRecord = !!playWhenRecord
+		this.streamOptions = defaultStreamOptions
+		this.recordOptions = defaultRecordOptions
 
 		this.mediaStream = undefined
-		this.audioElement = audioElement || util.createAudioElement()
 		this.mediaRecorder = undefined
 		this.audioTrack = undefined
+		this.audioContext = undefined
+		this.audioSource = undefined
+		this.audioAnalyser = undefined
+		this.audioDataArray = undefined
 
 		this.recordChunks = []
 
 		this.eventObject = {}
+		this.startRecordParams = {}
+		this.timer = null
+		this.timeStep = undefined
+	}
+
+	get isBrowserSurrpot() {
+		return checkBrowserSupport()
+	}
+
+	get isRecording() {
+		if (!this.mediaStream || !this.mediaRecorder) {
+			return false
+		}
+		if (this.mediaRecorder.state === 'recording') {
+			return true
+		} else {
+			return false
+		}
 	}
 
 	on(key, cb) {
@@ -58,12 +65,14 @@ class SoundRecorder {
 
 				if (!stream) {
 					throw this.callEventListener('error', 1001)
+					return false
 				}
 
 				let audioTracks = stream.getAudioTracks()
 
 				if (!audioTracks || audioTracks.length < 1) {
 					throw this.callEventListener('error', 1004)
+					return false
 				}
 
 				this.mediaStream = stream
@@ -75,9 +84,11 @@ class SoundRecorder {
 			.then(stream => {
 				if (!window.MediaRecorder) {
 					throw this.callEventListener('error', 1002)
+					return false
 				}
 				if (!MediaRecorder.isTypeSupported(this.recordOptions.mimeType)) {
 					throw this.callEventListener('error', 1003)
+					return false
 				}
 				this.mediaRecorder = new MediaRecorder(stream, this.recordOptions)
 				this.initRecordeEventListener()
@@ -86,6 +97,7 @@ class SoundRecorder {
 			})
 			.catch(err => {
 				throw this.callEventListener('error', err.name)
+				return false
 			})
 	}
 
@@ -94,9 +106,24 @@ class SoundRecorder {
 			this.recordChunks.push(blobEvent.data)
 		}
 		this.mediaRecorder.onstart = (e) => {
+			if (Number(this.startRecordParams.duration) && Number(this.startRecordParams.duration) > 0) {
+				clearTimeout(this.timer)
+				this.timer = setTimeout(() => {
+					this.stopRecord()
+				}, Number(this.startRecordParams.duration))
+			}
 			this.callEventListener('startRecord', { chunks: this.recordChunks })
 		}
 		this.mediaRecorder.onstop = (e) => {
+			if (Number(this.startRecordParams.duration) && Number(this.startRecordParams.duration) > 0 && this.timer) {
+				clearTimeout(this.timer)
+				this.timer = null
+			}
+			try {
+				this.audioContext.suspend()
+			} catch (err) {
+
+			}
 			this.callEventListener('stopRecord', { chunks: this.recordChunks })
 		}
 	}
@@ -109,21 +136,55 @@ class SoundRecorder {
 		}
 	}
 
-	startRecord() {
+	startRecord(options = {}) {
 		if (this.isRecording) {
 			return
 		}
+
 		const startFunc = () => {
+			this.startRecordParams = { ...options }
 			this.recordChunks = []
 			this.mediaRecorder.start()
-			this.isRecording = true
 		}
-		this.initMedia().then(res => {
-			startFunc()
-		}).catch(err => {
-		})
 
+		this.initMedia()
+			.then(res => {
+				startFunc()
+			})
+			.then(() => {
+				if (this.mediaStream && window.AudioContext) {
+					if (!this.audioContext) {
+						this.audioContext = new AudioContext()
+						this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream)
+						this.audioAnalyser = this.audioContext.createAnalyser()
+						this.audioAnalyser.fftSize = 1024
+						this.audioDataArray = new Uint8Array(this.audioAnalyser.fftSize)
+						this.audioSource.connect(this.audioAnalyser)
+					} else {
+						this.audioContext.resume()
+					}
 
+					const callBackAudioAnalyse = (timestamp) => {
+						if (this.mediaStream && window.AudioContext && this.audioContext && this.isRecording) {
+							this.audioAnalyser.getByteFrequencyData(this.audioDataArray)
+							this.callEventListener('audioAnalyse', { audioDataArray: this.audioDataArray })
+							if (Number(this.startRecordParams.analyseDelay)) {
+								setTimeout(() => {
+									window.requestAnimationFrame(callBackAudioAnalyse)
+								}, Number(this.startRecordParams.analyseDelay))
+							} else {
+								window.requestAnimationFrame(callBackAudioAnalyse)
+							}
+						}
+					}
+
+					window.requestAnimationFrame(callBackAudioAnalyse)
+
+				}
+			})
+			.catch(err => {
+				console.log(err)
+			})
 
 	}
 
@@ -131,7 +192,6 @@ class SoundRecorder {
 		if (!this.isRecording || !this.mediaStream || !this.mediaRecorder) {
 			return
 		}
-		this.isRecording = false
 		this.mediaRecorder.stop()
 		this.audioTrack.stop()
 	}
