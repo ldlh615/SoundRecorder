@@ -55,11 +55,19 @@ class SoundRecorder {
 	initMedia() {
 		return navigator.mediaDevices.getUserMedia(this.streamOptions)
 			.then(stream => {
-				this.mediaStream = stream
 
 				if (!stream) {
 					throw this.callEventListener('error', 1001)
 				}
+
+				let audioTracks = stream.getAudioTracks()
+
+				if (!audioTracks || audioTracks.length < 1) {
+					throw this.callEventListener('error', 1004)
+				}
+
+				this.mediaStream = stream
+				this.audioTrack = audioTracks[0]
 
 				return stream
 
@@ -83,12 +91,13 @@ class SoundRecorder {
 
 	initRecordeEventListener() {
 		this.mediaRecorder.ondataavailable = (blobEvent) => {
-			console.log(1, blobEvent)
 			this.recordChunks.push(blobEvent.data)
-			// this.callEventListener('stopRecord')
 		}
-		this.mediaRecorder.onstop = (blobEvent) => {
-			console.log(2, blobEvent)
+		this.mediaRecorder.onstart = (e) => {
+			this.callEventListener('startRecord', { chunks: this.recordChunks })
+		}
+		this.mediaRecorder.onstop = (e) => {
+			this.callEventListener('stopRecord', { chunks: this.recordChunks })
 		}
 	}
 
@@ -108,18 +117,13 @@ class SoundRecorder {
 			this.recordChunks = []
 			this.mediaRecorder.start()
 			this.isRecording = true
-			this.callEventListener('startRecord')
 		}
-		if (!this.mediaStream || !this.mediaRecorder) {
-			this.initMedia().then(res => {
-				startFunc()
-			}).catch(err => {
-			})
-		} else {
+		this.initMedia().then(res => {
 			startFunc()
-		}
+		}).catch(err => {
+		})
 
-		
+
 
 	}
 
@@ -129,6 +133,7 @@ class SoundRecorder {
 		}
 		this.isRecording = false
 		this.mediaRecorder.stop()
+		this.audioTrack.stop()
 	}
 
 

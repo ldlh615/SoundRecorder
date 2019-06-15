@@ -26,6 +26,8 @@ export const errorMsgMap = {
 
   1003: '不支持录制格式错误',
 
+  1004: '无可用录制音轨',
+
   aborterror: [2001, '中止错误'],
 
   notallowederror: [2002, '拒绝错误'],
