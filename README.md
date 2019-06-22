@@ -32,3 +32,35 @@ SoundRecorder is very easy to use, You can read the full demo [here](https://ldl
 ```
 
 ## Documentation
+
+there the methods of SoundRecorder instance   
+
+  **startRecord(options)**  
+  type: Function  
+  args: options  
+  default: {}  
+  description: start mediaRecorder
+  
+  ---
+
+  **stopRecord**  
+  type: Function  
+  args: options  
+  default: {}  
+  description: stop mediaRecorder
+
+  ---
+
+  **getBlob**  
+  type: Function  
+  args: options  
+  default: {}  
+  description: get recorded blob, the blob is build by all chunks
+
+  ---
+
+  **on(String, Function)**  
+  type: Function  
+  args: options  
+  default: {}  
+  description: add the event listener callback
