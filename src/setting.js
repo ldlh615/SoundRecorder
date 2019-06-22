@@ -1,7 +1,7 @@
 // https://developer.mozilla.org/zh-CN/docs/Web/API/MediaTrackConstraints
 export const defaultStreamOptions = {
   audio: {
-    channelCount: 1,	// 声道
+    channelCount: 2,	// 声道
     echoCancellation: true,	// 回声控制
     // sampleSize:   // 采样大小
     sampleRate: 24000,// 采样率

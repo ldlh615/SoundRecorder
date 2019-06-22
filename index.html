@@ -13,20 +13,29 @@
 			display: block;
 			margin: 10px 0;
 		}
+
+		canvas {
+			border: 1px solid #000;
+		}
 	</style>
 </head>
 
 <body>
 	<audio id="audio" controls autoplay preload="auto"></audio>
+	<br>
 	<canvas id="canvas" width="640" height="255"></canvas>
 	<hr>
-	当前状态: <span id="status"></span>
+	current status: <span id="status"></span>
+	<hr>
+	split upload:
+	<label><input type="radio" name="splitupload" value="on">on</label>
+	<label><input type="radio" name="splitupload" value="off" checked>off</label>
 	<hr>
 	<button id="startRecord">startRecord</button>
+	<button id="startSplitRecord">startSplitRecord</button>
 	<button id="stopRecord">stopRecord</button>
 	<button id="getBlob">getBlob</button>
 	<button id="playBlob">playBlob</button>
-
 
 	<script>
 		$(() => {
@@ -40,7 +49,7 @@
 			const ctx = canvas.getContext("2d")
 			ctx.fillStyle = "#fff"
 			ctx.fillRect(0, 0, canvas.width, canvas.height)
-
+			let isOpenSplitUpload = false
 
 			// 实例化
 			window.sr = new SoundRecorder()
@@ -51,14 +60,17 @@
 			sr.on('error', (e) => {
 				console.log('error', e)
 			})
+
 			sr.on('startRecord', (e) => {
 				console.log('startRecord', e)
-				statusElement.innerText = '录音中'
+				statusElement.innerText = 'recording'
 			})
+
 			sr.on('stopRecord', (e) => {
 				console.log('stopRecord', e)
-				statusElement.innerText = '录音结束'
+				statusElement.innerText = 'stoped'
 			})
+
 			sr.on('audioAnalyse', (e) => {
 				// console.log('audioAnalyse', e)
 				let audioDataArray = e.audioDataArray || []
@@ -71,14 +83,48 @@
 				}
 			})
 
+			sr.on('dataReceive', (e) => {
+				console.log(e)
+				
+				if (isOpenSplitUpload) {
+					let formData = new FormData()
+					formData.append('file', e.data)
+					$.ajax({
+						processData: false,
+						contentType: false,
+						method: "POST",
+						url: "/upload",
+						data: formData,
+					})
+				}
+			})
+
 			// 点击事件
 			$('#startRecord').click(() => {
 				let recOptions = {
 					duration: 60000,
-					analyseDelay: 0
+					analyseDelay: 0,
+					channelCount: 2,
+					sampleRate: 24000,
+					mimeType: 'audio/webm',
+					audioBitsPerSecond: 128000
 				}
 				sr.startRecord(recOptions)
 			})
+
+			$('#startSplitRecord').click(() => {
+				let recOptions = {
+					duration: 600000,
+					analyseDelay: 0,
+					channelCount: 2,
+					sampleRate: 24000,
+					mimeType: 'audio/webm',
+					audioBitsPerSecond: 128000,
+					splitMillisecond: 3000,
+				}
+				sr.startRecord(recOptions)
+			})
+
 			$('#stopRecord').click(() => {
 				sr.stopRecord()
 			})
@@ -91,6 +137,7 @@
 					open && window.open(URL.createObjectURL(b), 'blank')
 				}
 			})
+
 			$('#playBlob').click(() => {
 				let b = sr.getBlob()
 				console.log(b)
@@ -100,7 +147,14 @@
 				}
 			})
 
-
+			$('input[name="splitupload"]').click((e) => {
+				if (e.target.value == 'on') {
+					isOpenSplitUpload = true
+				}
+				if (e.target.value == 'off') {
+					isOpenSplitUpload = false
+				}
+			})
 
 		})
 

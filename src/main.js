@@ -103,7 +103,11 @@ class SoundRecorder {
 
 	initRecordeEventListener() {
 		this.mediaRecorder.ondataavailable = (blobEvent) => {
+			let { splitMillisecond } = this.startRecordParams
 			this.recordChunks.push(blobEvent.data)
+			if (typeof splitMillisecond == 'number' && splitMillisecond > 0) {
+				this.callEventListener('dataReceive', { data: blobEvent.data })
+			}
 		}
 		this.mediaRecorder.onstart = (e) => {
 			if (Number(this.startRecordParams.duration) && Number(this.startRecordParams.duration) > 0) {
@@ -113,6 +117,34 @@ class SoundRecorder {
 				}, Number(this.startRecordParams.duration))
 			}
 			this.callEventListener('startRecord', { chunks: this.recordChunks })
+
+			if (this.mediaStream && window.AudioContext) {
+
+				this.audioContext = new AudioContext()
+				this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream)
+				this.audioAnalyser = this.audioContext.createAnalyser()
+				this.audioAnalyser.fftSize = 1024
+				this.audioDataArray = new Uint8Array(this.audioAnalyser.fftSize)
+				this.audioSource.connect(this.audioAnalyser)
+
+				const callBackAudioAnalyse = (timestamp) => {
+					if (this.mediaStream && window.AudioContext && this.audioContext && this.isRecording) {
+						this.audioAnalyser.getByteFrequencyData(this.audioDataArray)
+						this.callEventListener('audioAnalyse', { audioDataArray: this.audioDataArray })
+						if (Number(this.startRecordParams.analyseDelay)) {
+							setTimeout(() => {
+								window.requestAnimationFrame(callBackAudioAnalyse)
+							}, Number(this.startRecordParams.analyseDelay))
+						} else {
+							window.requestAnimationFrame(callBackAudioAnalyse)
+						}
+					}
+				}
+
+				window.requestAnimationFrame(callBackAudioAnalyse)
+
+			}
+
 		}
 		this.mediaRecorder.onstop = (e) => {
 			if (Number(this.startRecordParams.duration) && Number(this.startRecordParams.duration) > 0 && this.timer) {
@@ -120,7 +152,11 @@ class SoundRecorder {
 				this.timer = null
 			}
 			try {
-				this.audioContext.suspend()
+				if (this.audioContext) {
+					this.audioAnalyser.disconnect()
+					this.audioSource.disconnect()
+					this.audioContext.close()
+				}
 			} catch (err) {
 
 			}
@@ -144,43 +180,16 @@ class SoundRecorder {
 		const startFunc = () => {
 			this.startRecordParams = { ...options }
 			this.recordChunks = []
-			this.mediaRecorder.start()
+			if (typeof options.splitMillisecond == 'number' && options.splitMillisecond > 0) {
+				this.mediaRecorder.start(options.splitMillisecond)
+			} else {
+				this.mediaRecorder.start()
+			}
 		}
 
 		this.initMedia()
 			.then(res => {
 				startFunc()
-			})
-			.then(() => {
-				if (this.mediaStream && window.AudioContext) {
-					if (!this.audioContext) {
-						this.audioContext = new AudioContext()
-						this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream)
-						this.audioAnalyser = this.audioContext.createAnalyser()
-						this.audioAnalyser.fftSize = 1024
-						this.audioDataArray = new Uint8Array(this.audioAnalyser.fftSize)
-						this.audioSource.connect(this.audioAnalyser)
-					} else {
-						this.audioContext.resume()
-					}
-
-					const callBackAudioAnalyse = (timestamp) => {
-						if (this.mediaStream && window.AudioContext && this.audioContext && this.isRecording) {
-							this.audioAnalyser.getByteFrequencyData(this.audioDataArray)
-							this.callEventListener('audioAnalyse', { audioDataArray: this.audioDataArray })
-							if (Number(this.startRecordParams.analyseDelay)) {
-								setTimeout(() => {
-									window.requestAnimationFrame(callBackAudioAnalyse)
-								}, Number(this.startRecordParams.analyseDelay))
-							} else {
-								window.requestAnimationFrame(callBackAudioAnalyse)
-							}
-						}
-					}
-
-					window.requestAnimationFrame(callBackAudioAnalyse)
-
-				}
 			})
 			.catch(err => {
 				console.log(err)
