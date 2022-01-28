@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "typeRoots": ["./types"],
+    "experimentalDecorators": true,
+    "target": "ES5",
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitThis": true,
+    "sourceMap": true,
+    "declaration": true,
+    "removeComments": true,
+    "lib": [
+      "DOM",
+      "ES2015",
+      "ESNext"
+    ],
+  },
+  "include": ["src/**/*", "types/*"],
+  "exclude": ["node_modules"]
+}

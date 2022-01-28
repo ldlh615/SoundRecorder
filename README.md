@@ -2,65 +2,38 @@
 
 SoundRecorder is a website sound recorder SDK base on h5 api.
 
-* **Sdk-based** Base on some h5 api, such as mediaStream, mediaRecorder, audioContext
-* **browser supprot:** It just build for PC website record, this sdk is unsupport for h5
+- **Sdk-based** Base on some h5 api, such as mediaStream, mediaRecorder, audioContext
+- **browser supprot:** It just build for PC website record, this sdk is unsupport for h5
 
 ## Installation
 
-SoundRecorder build by umd, **you can use it by 2 ways**:
+SoundRecorder is build by umd mode, you can use it with cdn or import in your project.
 
-* just append the `<script src="/dist/soundRecorder.min.js"></script>` tag into the html.
-* or you can import soundrecorder in to your js.
+**CDN**
+
+```
+<script src="https://cdn.jsdelivr.net/npm/soundrecorder"></script>
+```
+
+**NPM**
+
+```
+$ npm install soundrecorder
+```
 
 ## Usage
 
-SoundRecorder is very easy to use, You can read the full demo [here](https://ldlh615.github.io/SoundRecorder/) or read the code
+only 3 step to start the recorder and get the mieda file:
 
 ```
-  // 1. instance the SoundRecorder
-  var sr = new SoundRecorder() 
+// 1. new instance the recorder
+const recorder = new Soundrecorder();
 
-  // 2. start
-  sr.start()
+// 2. start record
+recorder.start()
 
-  // 3. stop
-  sr.stop()
-
-  // 4. get the recorded file
-  var blob = sr.getBlob()
-  console.log(blob)
+// 3. stop record
+recorder.stop().then((file) => {
+  console.log('get the media file:', file)
+})
 ```
-
-## Documentation
-
-there the methods of SoundRecorder instance   
-
-  **startRecord(options)**  
-  type: Function  
-  args: options  
-  default: {}  
-  description: start mediaRecorder
-  
-  ---
-
-  **stopRecord**  
-  type: Function  
-  args: options  
-  default: {}  
-  description: stop mediaRecorder
-
-  ---
-
-  **getBlob**  
-  type: Function  
-  args: options  
-  default: {}  
-  description: get recorded blob, the blob is build by all chunks
-
-  ---
-
-  **on(String, Function)**  
-  type: Function  
-  args: options  
-  default: {}  
-  description: add the event listener callback

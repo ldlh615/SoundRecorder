@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        width: 100%;
+      }
+      th,
+      td {
+        padding: 10px;
+      }
+    </style>
+    <script src="./soundrecorder.js"></script>
+  </head>
+  <body>
+    <audio controls preload="auto"></audio>
+    <hr />
+    <button onclick="startRecord()">start record</button>
+    <button onclick="pauseRecord()">pause record</button>
+    <button onclick="resumeRecord()">resume record</button>
+    <button onclick="stopRecord()">stop record</button>
+    <hr />
+    <table>
+      <tbody>
+        <tr>
+          <th>name</th>
+          <th>size</th>
+          <th>date</th>
+        </tr>
+      </tbody>
+    </table>
+    <script>
+      const audio = document.querySelector('audio');
+      const tbody = document.querySelector('tbody');
+
+      // check support
+      if (!Soundrecorder.checkSupport()) {
+        alert('your borwser is not surpport');
+        throw new Error('your borwser is not surpport');
+      }
+
+      // instance the recorder
+      const recorder = new Soundrecorder();
+      console.dir(recorder);
+
+      function startRecord() {
+        recorder.start();
+      }
+
+      function pauseRecord() {
+        recorder.pause();
+      }
+
+      function resumeRecord() {
+        recorder.resume();
+      }
+
+      function stopRecord() {
+        recorder.stop().then((file) => {
+          console.log('record stop success', file);
+          const audioUrl = window.URL.createObjectURL(file);
+          audio.src = audioUrl;
+          renderFileRow(file);
+        });
+      }
+
+      function renderFileRow(file) {
+        const template = `<td>${file.name}</td>
+        <td>${file.size / 1024}kb</td>
+        <td>${new Date().toLocaleString()}</td>`;
+        const div = document.createElement('TR');
+        div.innerHTML = template;
+        tbody.appendChild(div);
+      }
+    </script>
+  </body>
+</html>
